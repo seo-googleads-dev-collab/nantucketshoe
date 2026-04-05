@@ -9,20 +9,22 @@ Full-stack e-commerce site for Nantucket Shoe.
 
 ## Quick start (local dev)
 
+Requirements: Docker Desktop, Node 18+ (only for the helper scripts).
+
 ```bash
-# 1. Copy env templates
-cp my-strapi-project/.env.example my-strapi-project/.env
-cp frontend/.env.example frontend/.env.local
+# 1. Generate local env files with fresh secrets
+node scripts/init-env.mjs
 
-# 2. Generate Strapi secrets and paste into my-strapi-project/.env
-#    APP_KEYS, API_TOKEN_SALT, ADMIN_JWT_SECRET, TRANSFER_TOKEN_SALT,
-#    JWT_SECRET, ENCRYPTION_KEY — use `openssl rand -base64 32` per value
-
-# 3. Start everything
+# 2. Start everything (Postgres + Strapi + Next.js)
 docker compose up -d
 
-# 4. First-time admin setup
+# 3. First-time admin setup
 #    Open http://localhost:1337/admin and create an admin user
+
+# 4. (Optional) Seed Strapi with starter content + all media
+#    Uses admin@nshoe.com / Admin123! by default —
+#    override with ADMIN_EMAIL/ADMIN_PASSWORD env vars if needed
+node scripts/seed-strapi.mjs
 ```
 
 | Service | URL |
