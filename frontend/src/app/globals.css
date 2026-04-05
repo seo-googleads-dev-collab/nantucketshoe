@@ -1,0 +1,10 @@
+@import "tailwindcss";
+
+html,
+body {
+  scroll-behavior: smooth;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}

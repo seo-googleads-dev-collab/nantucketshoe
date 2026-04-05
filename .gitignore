@@ -1,0 +1,65 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Next.js
+frontend/.next/
+frontend/out/
+frontend/build/
+frontend/.vercel/
+
+# Strapi
+my-strapi-project/.cache/
+my-strapi-project/build/
+my-strapi-project/dist/
+my-strapi-project/.tmp/
+my-strapi-project/exports/
+my-strapi-project/public/uploads/
+my-strapi-project/.strapi/
+my-strapi-project/types/
+
+# Env files (contain secrets)
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+my-strapi-project/.env
+frontend/.env.local
+frontend/.env.production.local
+
+# Keep env templates
+!**/.env.example
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Claude Code
+.claude/
+
+# Temp / scratch
+*.tmp
+help.txt
+token.txt
+figma_*.json
+image_nodes.json
+fetch_figma.js
+seed.py
+Media/
+backend/
+backend_backup/

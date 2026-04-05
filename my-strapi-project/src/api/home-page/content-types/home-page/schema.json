@@ -1,0 +1,55 @@
+{
+  "kind": "singleType",
+  "collectionName": "home_pages",
+  "info": {
+    "singularName": "home-page",
+    "pluralName": "home-pages",
+    "displayName": "Home Page",
+    "description": "Content for the home page"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "hero_image": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": ["images"]
+    },
+    "hero_video_1": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": ["videos"]
+    },
+    "hero_video_2": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": ["videos"]
+    },
+    "paisley_image": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": ["images"]
+    },
+    "shoe_small_image": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": ["images"]
+    },
+    "beach_image": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": ["images"]
+    },
+    "wanderlust_eyebrow": { "type": "string" },
+    "wanderlust_title": { "type": "string" },
+    "wanderlust_text": { "type": "text" },
+    "limited_edition_eyebrow": { "type": "string" },
+    "limited_edition_title": { "type": "string" },
+    "limited_edition_text": { "type": "text" },
+    "sandbar_eyebrow": { "type": "string" },
+    "sandbar_title": { "type": "string" },
+    "sandbar_text": { "type": "text" }
+  }
+}

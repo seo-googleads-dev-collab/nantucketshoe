@@ -1,0 +1,73 @@
+version: '3.8'
+services:
+  postgres:
+    image: postgres:15-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: strapi
+      POSTGRES_PASSWORD: strapi
+      POSTGRES_DB: strapi
+    volumes:
+      - strapi-data:/var/lib/postgresql/data
+    ports:
+      - "5433:5432"
+    networks:
+      - internal
+      
+  strapi:
+    build:
+      context: ./my-strapi-project
+    restart: unless-stopped
+    command: npm run start
+    env_file:
+      - ./my-strapi-project/.env
+    environment:
+      NODE_ENV: production
+      DATABASE_CLIENT: postgres
+      DATABASE_HOST: postgres
+      DATABASE_PORT: 5432
+      DATABASE_NAME: strapi
+      DATABASE_USERNAME: strapi
+      DATABASE_PASSWORD: strapi
+      DATABASE_SSL: false
+      JWT_SECRET: aSecretKey
+    ports:
+      - "1337:1337"
+    volumes:
+      - ./my-strapi-project:/opt/app
+      - /opt/app/node_modules
+      - /opt/app/.strapi
+      - /opt/app/dist
+      - /opt/app/build
+    depends_on:
+      postgres:
+        condition: service_started
+    networks:
+      - internal
+      - external
+
+  frontend:
+    build:
+      context: ./frontend
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_STRAPI_URL=http://localhost:1337 # We use localhost since nextjs fetches from client side as well
+      - STRAPI_URL=http://strapi:1337 # For NextJS server actions/components to communicate with dockerized strapi
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+      - /app/.next
+    depends_on:
+      - strapi
+    networks:
+      - internal
+      - external
+
+volumes:
+  strapi-data:
+
+networks:
+  internal:
+  external:

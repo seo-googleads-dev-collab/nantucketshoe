@@ -1,0 +1,32 @@
+{
+  "kind": "singleType",
+  "collectionName": "rando_pages",
+  "info": {
+    "singularName": "rando-page",
+    "pluralName": "rando-pages",
+    "displayName": "Rando Page",
+    "description": "Content for the rando page"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "hero_image": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": ["images"]
+    },
+    "intro_title": {
+      "type": "string"
+    },
+    "intro_text": {
+      "type": "text"
+    },
+    "items": {
+      "type": "component",
+      "repeatable": true,
+      "component": "shared.rando-item"
+    }
+  }
+}

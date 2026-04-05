@@ -1,0 +1,22 @@
+{
+  "collectionName": "components_shared_rando_items",
+  "info": {
+    "displayName": "Rando Item",
+    "icon": "picture"
+  },
+  "options": {},
+  "attributes": {
+    "title": {
+      "type": "string"
+    },
+    "subtitle": {
+      "type": "string"
+    },
+    "image": {
+      "type": "media",
+      "multiple": false,
+      "required": false,
+      "allowedTypes": ["images"]
+    }
+  }
+}
