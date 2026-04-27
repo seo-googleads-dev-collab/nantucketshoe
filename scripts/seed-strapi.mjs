@@ -192,7 +192,16 @@ async function seedAboutPage(m) {
 async function seedRandoPage(m) {
   const uid = "api::rando-page.rando-page";
   log("seeding rando-page…");
-  const item = (title) => ({ title, subtitle: "Limited Edition", image: null });
+  const desc =
+    "We want you to have more than all the comforts of home. Put the rush of the modern world in its place when you escape to Alpine Falls Ranch's finest accommodation. We want you to have more than all the comforts of home. Put the rush of the modern world in its place when you escape to Alpine Falls Ranch's finest accommodation.";
+  const item = (title) => ({
+    title,
+    subtitle: "LIMITED EDITION 100",
+    description: desc,
+    bottom_text: "AMENITIES + POLICIES + Open",
+    circular_image: null,
+    feature_images: null,
+  });
   await putSingle(uid, {
     hero_image: m["rando-hero"]?.id,
     intro_title: "Rando",
@@ -202,9 +211,6 @@ async function seedRandoPage(m) {
       item("Item One"),
       item("Item Two"),
       item("Item Three"),
-      item("Item Four"),
-      item("Item Five"),
-      item("Item Six"),
     ],
   });
   await publishSingle(uid);

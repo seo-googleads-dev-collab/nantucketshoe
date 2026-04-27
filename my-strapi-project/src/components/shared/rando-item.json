@@ -12,9 +12,21 @@
     "subtitle": {
       "type": "string"
     },
-    "image": {
+    "description": {
+      "type": "text"
+    },
+    "bottom_text": {
+      "type": "string"
+    },
+    "circular_image": {
       "type": "media",
       "multiple": false,
+      "required": false,
+      "allowedTypes": ["images"]
+    },
+    "feature_images": {
+      "type": "media",
+      "multiple": true,
       "required": false,
       "allowedTypes": ["images"]
     }
