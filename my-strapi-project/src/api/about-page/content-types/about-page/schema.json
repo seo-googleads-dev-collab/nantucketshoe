@@ -17,8 +17,16 @@
       "multiple": false,
       "allowedTypes": ["images"]
     },
+    "page_title": {
+      "type": "string"
+    },
     "founder_story": {
       "type": "text"
+    },
+    "founder_image": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": ["images"]
     },
     "artists": {
       "type": "component",

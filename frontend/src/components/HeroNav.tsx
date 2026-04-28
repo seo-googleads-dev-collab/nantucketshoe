@@ -4,18 +4,18 @@ import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import Link from "next/link";
 import Image from "next/image";
+import { useSiteGlobal } from "@/lib/SiteGlobalContext";
 
 type Props = {
   linkColor?: string;
   hamburgerColor?: string;
 };
 
-const LINKS = ["HOME", "SHOES", "ABOUT", "CONTACT", "RANDO"];
-
 export default function HeroNav({
   linkColor = "#413c3c",
   hamburgerColor = "#ffffff",
 }: Props) {
+  const global = useSiteGlobal();
   const [open, setOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
 
@@ -24,14 +24,8 @@ export default function HeroNav({
   }, []);
 
   useEffect(() => {
-    if (open) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "";
-    }
-    return () => {
-      document.body.style.overflow = "";
-    };
+    document.body.style.overflow = open ? "hidden" : "";
+    return () => { document.body.style.overflow = ""; };
   }, [open]);
 
   const drawer = open && (
@@ -44,14 +38,14 @@ export default function HeroNav({
         <span className="font-maven text-white text-[32px] leading-none">×</span>
       </button>
       <nav className="flex-1 flex flex-col items-center justify-center gap-8">
-        {LINKS.map((l) => (
+        {global.nav_links.map((l) => (
           <Link
-            key={l}
-            href={l === "HOME" ? "/" : `/${l.toLowerCase()}`}
+            key={l.label}
+            href={l.href}
             onClick={() => setOpen(false)}
             className="font-maven font-semibold text-white text-[22px] tracking-[0.2em] hover:text-[#d33a10] transition-colors"
           >
-            {l}
+            {l.label}
           </Link>
         ))}
       </nav>
@@ -67,7 +61,7 @@ export default function HeroNav({
         style={{ width: 96, height: 72 }}
       >
         <Image
-          src="/images/logo-card.png"
+          src={global.logo}
           alt="Nantucket Shoe"
           fill
           className="object-contain"
@@ -77,14 +71,14 @@ export default function HeroNav({
 
       {/* Desktop nav links top-right */}
       <div className="hidden md:flex absolute top-6 right-8 z-20 gap-7">
-        {LINKS.map((l) => (
+        {global.nav_links.map((l) => (
           <Link
-            key={l}
-            href={l === "HOME" ? "/" : `/${l.toLowerCase()}`}
+            key={l.label}
+            href={l.href}
             className="font-maven font-semibold text-[13px] tracking-[0.15em] hover:text-[#d33a10] transition-colors drop-shadow-sm"
             style={{ color: linkColor }}
           >
-            {l}
+            {l.label}
           </Link>
         ))}
       </div>
@@ -100,7 +94,7 @@ export default function HeroNav({
         <span className="block w-6 h-[2px]" style={{ background: hamburgerColor }} />
       </button>
 
-      {/* Drawer portaled to body to escape overflow:hidden parents */}
+      {/* Drawer portaled to body */}
       {mounted && typeof window !== "undefined" && createPortal(drawer, document.body)}
     </>
   );

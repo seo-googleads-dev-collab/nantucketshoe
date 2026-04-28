@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import HeroNav from "@/components/HeroNav";
 import { fetchAPI, getStrapiMedia } from "@/lib/strapi";
+import { useSiteGlobal } from "@/lib/SiteGlobalContext";
 
 type HomeContent = {
   hero_image: string;
@@ -47,6 +48,7 @@ const DEFAULTS: HomeContent = {
 };
 
 export default function Home() {
+  const global = useSiteGlobal();
   const [c, setC] = useState<HomeContent>(DEFAULTS);
 
   useEffect(() => {
@@ -103,7 +105,7 @@ export default function Home() {
       {/* ── Photo credit ── */}
       <div className="py-3 px-8 flex justify-end border-b border-[#d9d9d9]">
         <p className="font-maven font-medium text-[#d33a10] text-[13px] tracking-[0.05em]">
-          PHOTO BY NANTUCKET&apos;S DAN LEMAITRE
+          {global.photo_credit}
         </p>
       </div>
 
@@ -254,10 +256,10 @@ export default function Home() {
       {/* ── Credit bar ── */}
       <div className="py-4 px-4 md:px-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-2 bg-white border-t border-[#d9d9d9]">
         <Link href="/shoes" className="font-maven font-semibold text-[12px] md:text-[13px] tracking-[0.15em] text-[#413c3c] hover:text-[#d33a10] transition-colors">
-          EXPLORE COLLECTION →
+          {global.explore_collection_text}
         </Link>
         <p className="font-maven font-medium text-[#d33a10] text-[11px] md:text-[13px] tracking-[0.05em]">
-          PHOTO BY NANTUCKET&apos;S DAN LEMAITRE
+          {global.photo_credit}
         </p>
       </div>
 

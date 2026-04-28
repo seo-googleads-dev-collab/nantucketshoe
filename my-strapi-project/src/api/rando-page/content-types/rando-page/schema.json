@@ -17,6 +17,9 @@
       "multiple": false,
       "allowedTypes": ["images"]
     },
+    "intro_eyebrow": {
+      "type": "string"
+    },
     "intro_title": {
       "type": "string"
     },
@@ -27,6 +30,11 @@
       "type": "component",
       "repeatable": true,
       "component": "shared.rando-item"
+    },
+    "ocean_bg_image": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": ["images"]
     }
   }
 }

@@ -1,0 +1,33 @@
+{
+  "collectionName": "components_shared_shoe_detail_sections",
+  "info": {
+    "displayName": "Shoe Detail Section",
+    "icon": "file-alt"
+  },
+  "options": {},
+  "attributes": {
+    "edition_label": { "type": "string" },
+    "title": { "type": "string" },
+    "headline": { "type": "text" },
+    "detail_image": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": ["images"]
+    },
+    "body_left_intro": { "type": "text" },
+    "body_left_heading": { "type": "string" },
+    "body_left_text": { "type": "text" },
+    "body_right_heading": { "type": "string" },
+    "body_right_text": { "type": "text" },
+    "body_right_extra": { "type": "text" },
+    "artist_heading": { "type": "string" },
+    "artist_text_left": { "type": "text" },
+    "artist_text_right": { "type": "text" },
+    "artist_name": { "type": "string" },
+    "artist_image": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": ["images"]
+    }
+  }
+}

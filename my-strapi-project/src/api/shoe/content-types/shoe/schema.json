@@ -30,9 +30,7 @@
       "type": "media",
       "multiple": false,
       "required": false,
-      "allowedTypes": [
-        "images"
-      ]
+      "allowedTypes": ["images"]
     },
     "sizes": {
       "type": "json"
@@ -47,6 +45,26 @@
     "slug": {
       "type": "uid",
       "targetField": "name"
+    },
+    "tagline": {
+      "type": "string"
+    },
+    "edition_label": {
+      "type": "string"
+    },
+    "extended_story_heading": {
+      "type": "string"
+    },
+    "extended_story_text": {
+      "type": "text"
+    },
+    "artist_bio": {
+      "type": "text"
+    },
+    "detail_image": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": ["images"]
     }
   }
 }

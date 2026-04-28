@@ -13,6 +13,9 @@ export default {
       "api::home-page.home-page.find",
       "api::about-page.about-page.find",
       "api::rando-page.rando-page.find",
+      "api::shoes-page.shoes-page.find",
+      "api::contact-page.contact-page.find",
+      "api::site-global.site-global.find",
       "api::shoe.shoe.find",
       "api::shoe.shoe.findOne",
     ];

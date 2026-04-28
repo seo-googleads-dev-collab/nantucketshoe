@@ -1,22 +1,31 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { useEffect, useState, useCallback } from "react";
 import Image from "next/image";
 import HeroNav from "@/components/HeroNav";
 import { fetchAPI, getStrapiMedia } from "@/lib/strapi";
+import { useSiteGlobal } from "@/lib/SiteGlobalContext";
 
+/* ── Types ── */
 type RandoItem = {
   id: number | string;
   title: string;
   subtitle: string;
   description: string;
+  tagline: string;
+  website_url: string;
+  phone: string;
   bottom_text: string;
+  tile_image?: string | null;
   circular_image?: string | null;
   feature_images: string[];
 };
 
 type RandoData = {
   hero_image?: string | null;
+  ocean_bg_image: string;
+  intro_eyebrow: string;
   intro_title: string;
   intro_text: string;
   items: RandoItem[];
@@ -27,58 +36,55 @@ const PLACEHOLDER_DESC =
 
 const FALLBACK: RandoData = {
   hero_image: "/images/rando-hero.jpg",
-  intro_title: "Rando",
+  ocean_bg_image: "/images/modal-ocean-bg.jpg",
+  intro_eyebrow: "NANTUCKET'S WANDERLUST",
+  intro_title: "Like Ink For Your Feet",
   intro_text:
-    "Random shoes, random stories, random rewards. Rando is our rotating collection of one-offs, experiments, and collaborations that don't fit anywhere else.",
+    "Ports attract people with adventure in their hearts: curious, restless, and keenly optimistic. For 400 years, rascals and raconteurs alike have walked Nantucket's docks and cobblestones.",
   items: [
     {
-      id: 1,
-      title: "Item One",
-      subtitle: "LIMITED EDITION 100",
-      description: PLACEHOLDER_DESC,
-      bottom_text: "AMENITIES + POLICIES + Open",
-      circular_image: null,
-      feature_images: [],
+      id: 1, title: "No Quarter", subtitle: "LIMITED EDITION 100",
+      description: PLACEHOLDER_DESC, tagline: "Hoisting the black flag means no quarter given",
+      website_url: "www.website", phone: "+1 555 0100",
+      bottom_text: "", tile_image: null, circular_image: null, feature_images: [],
     },
     {
-      id: 2,
-      title: "Item Two",
-      subtitle: "LIMITED EDITION 100",
-      description: PLACEHOLDER_DESC,
-      bottom_text: "AMENITIES + POLICIES + Open",
-      circular_image: null,
-      feature_images: [],
+      id: 2, title: "Surf Punk", subtitle: "LIMITED EDITION 100",
+      description: PLACEHOLDER_DESC, tagline: "Retro 70s Pacific wanderlust",
+      website_url: "www.website", phone: "+1 555 0200",
+      bottom_text: "", tile_image: null, circular_image: null, feature_images: [],
     },
     {
-      id: 3,
-      title: "Item Three",
-      subtitle: "LIMITED EDITION 100",
-      description: PLACEHOLDER_DESC,
-      bottom_text: "AMENITIES + POLICIES + Open",
-      circular_image: null,
-      feature_images: [],
+      id: 3, title: "Washashore", subtitle: "LIMITED EDITION 100",
+      description: PLACEHOLDER_DESC, tagline: "For those who came to Nantucket and never left",
+      website_url: "www.website", phone: "+1 555 0300",
+      bottom_text: "", tile_image: null, circular_image: null, feature_images: [],
     },
   ],
 };
 
+/* ── Main page ── */
 export default function RandoPage() {
+  const global = useSiteGlobal();
   const [data, setData] = useState<RandoData>(FALLBACK);
-  const [currentItem, setCurrentItem] = useState(0);
-  const [currentSlide, setCurrentSlide] = useState(0);
+  const [expandedId, setExpandedId] = useState<number | string | null>(null);
+  const [lightbox, setLightbox] = useState<{ images: string[]; idx: number } | null>(null);
 
   useEffect(() => {
     fetchAPI("/rando-page", {
       populate: {
         hero_image: true,
-        items: { populate: { circular_image: true, feature_images: true } },
+        ocean_bg_image: true,
+        items: { populate: { tile_image: true, circular_image: true, feature_images: true } },
       },
     })
       .then((res: any) => {
         if (res?.data) {
           const d = res.data;
           setData({
-            hero_image:
-              getStrapiMedia(d.hero_image?.url ?? null) ?? FALLBACK.hero_image,
+            hero_image: getStrapiMedia(d.hero_image?.url ?? null) ?? FALLBACK.hero_image,
+            ocean_bg_image: getStrapiMedia(d.ocean_bg_image?.url ?? null) ?? FALLBACK.ocean_bg_image,
+            intro_eyebrow: d.intro_eyebrow || FALLBACK.intro_eyebrow,
             intro_title: d.intro_title || FALLBACK.intro_title,
             intro_text: d.intro_text || FALLBACK.intro_text,
             items:
@@ -88,10 +94,12 @@ export default function RandoPage() {
                     title: it.title || "",
                     subtitle: it.subtitle || "LIMITED EDITION 100",
                     description: it.description || PLACEHOLDER_DESC,
+                    tagline: it.tagline || "",
+                    website_url: it.website_url || "",
+                    phone: it.phone || "",
                     bottom_text: it.bottom_text || "",
-                    circular_image: getStrapiMedia(
-                      it.circular_image?.url ?? null
-                    ),
+                    tile_image: getStrapiMedia(it.tile_image?.url ?? null),
+                    circular_image: getStrapiMedia(it.circular_image?.url ?? null),
                     feature_images: Array.isArray(it.feature_images)
                       ? it.feature_images
                           .map((img: any) => getStrapiMedia(img?.url ?? null))
@@ -105,188 +113,338 @@ export default function RandoPage() {
       .catch(() => {});
   }, []);
 
-  const item = data.items[currentItem] || data.items[0];
-  const images = item?.feature_images ?? [];
+  const toggleExpand = useCallback(
+    (id: number | string) => {
+      setExpandedId((prev) => (prev === id ? null : id));
+    },
+    []
+  );
 
-  const prevSlide = () =>
-    setCurrentSlide((s) => (s > 0 ? s - 1 : s));
-  const nextSlide = () =>
-    setCurrentSlide((s) => (s < images.length - 1 ? s + 1 : s));
-
-  // Reset slide when item changes
-  useEffect(() => {
-    setCurrentSlide(0);
-  }, [currentItem]);
+  // Chunk items into rows of 3
+  const rows: RandoItem[][] = [];
+  for (let i = 0; i < data.items.length; i += 3) {
+    rows.push(data.items.slice(i, i + 3));
+  }
 
   return (
     <div className="bg-white text-black">
-      {/* HERO */}
-      <section className="relative w-full overflow-hidden h-[260px] md:h-[420px]">
+      {/* ── HERO ── */}
+      <section className="relative w-full overflow-hidden h-[300px] md:h-[480px]">
         {data.hero_image && (
-          <Image
-            src={data.hero_image}
-            alt=""
-            fill
-            className="object-cover object-center"
-            priority
-          />
+          <Image src={data.hero_image} alt="" fill className="object-cover object-center" priority />
         )}
         <HeroNav linkColor="#ffffff" hamburgerColor="#ffffff" />
       </section>
 
-      {/* Intro */}
+      {/* ── INTRO ── */}
       <section className="max-w-[800px] mx-auto text-center px-5 md:px-10 py-12 md:py-16">
-        <h1 className="font-kavoon text-[#564215] text-[32px] md:text-[40px] tracking-[-0.03em] mb-4">
+        <p className="font-maven font-semibold text-[#050505] text-[11px] md:text-[13px] tracking-[0.35em] uppercase mb-2">
+          {data.intro_eyebrow}
+        </p>
+        <h1 className="font-kavoon text-[#564215] text-[28px] md:text-[40px] tracking-[-0.03em] leading-tight mb-6">
           {data.intro_title}
         </h1>
-        <p className="font-maven text-[#4b4c4b] text-[13px] md:text-[14px] leading-[26px] md:leading-[28px]">
+        <p className="font-maven text-[#4b4c4b] text-[13px] md:text-[14px] leading-[28px] md:leading-[30px] tracking-[-0.03em]">
           {data.intro_text}
         </p>
       </section>
 
-      {/* Ocean bg section — replaces old grid */}
-      <section className="relative w-full py-10 md:py-20 px-3 md:px-10">
-        {/* Ocean background */}
-        <div className="absolute inset-0 z-0">
+      {/* ── SHOE GRID with inline expand ── */}
+      <div className="max-w-[1300px] mx-auto px-4 md:px-10 pb-10 md:pb-16">
+        {rows.map((row, rowIdx) => {
+          // Find if any tile in this row is expanded
+          const expandedItem = row.find((item) => item.id === expandedId) || null;
+
+          return (
+            <div key={rowIdx}>
+              {/* Grid row */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 md:gap-5 mb-4 md:mb-5">
+                {row.map((item) => (
+                  <RandoTile
+                    key={item.id}
+                    item={item}
+                    isExpanded={expandedId === item.id}
+                    onClick={() => toggleExpand(item.id)}
+                  />
+                ))}
+                {/* Fill empty slots in last row */}
+                {row.length < 3 &&
+                  Array.from({ length: 3 - row.length }).map((_, i) => (
+                    <div key={`empty-${i}`} />
+                  ))}
+              </div>
+
+              {/* Inline expand below this row */}
+              <AnimatePresence>
+                {expandedItem && (
+                  <motion.div
+                    key={`expand-${expandedItem.id}`}
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: "auto", opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    transition={{ duration: 0.4, ease: "easeInOut" }}
+                    className="overflow-hidden mb-4 md:mb-5"
+                  >
+                    <ExpandedDetail
+                      item={expandedItem}
+                      onClose={() => setExpandedId(null)}
+                      onOpenLightbox={(images, idx) => setLightbox({ images, idx })}
+                    />
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* ── Footer credit ── */}
+      <div className="py-5 px-4 md:px-10 flex justify-end border-t border-[#d9d9d9]">
+        <p className="font-maven font-medium text-[#d33a10] text-[11px] md:text-[13px] tracking-[0.05em]">
+          {global.photo_credit}
+        </p>
+      </div>
+
+      {/* ── Page-level Lightbox (outside overflow containers) ── */}
+      <AnimatePresence>
+        {lightbox && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[200] bg-black/85 flex items-center justify-center p-4"
+            onClick={() => setLightbox(null)}
+          >
+            <motion.div
+              initial={{ scale: 0.9 }}
+              animate={{ scale: 1 }}
+              exit={{ scale: 0.9 }}
+              className="relative max-w-[90vw] max-h-[85vh] w-full aspect-[4/3]"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <Image
+                src={lightbox.images[lightbox.idx]}
+                alt="Gallery expanded"
+                fill
+                className="object-contain"
+              />
+              <button
+                onClick={() => setLightbox(null)}
+                className="absolute top-2 right-2 w-10 h-10 bg-black/60 text-white flex items-center justify-center hover:bg-[#d33a10] transition-colors rounded-full"
+                aria-label="Close lightbox"
+              >
+                X
+              </button>
+              {lightbox.idx > 0 && (
+                <button
+                  onClick={() => setLightbox((lb) => lb ? { ...lb, idx: lb.idx - 1 } : null)}
+                  className="absolute left-2 top-1/2 -translate-y-1/2 w-12 h-12 bg-black/60 text-white flex items-center justify-center text-[28px] hover:bg-[#d33a10] transition-colors rounded-full"
+                  aria-label="Previous image"
+                >
+                  ‹
+                </button>
+              )}
+              {lightbox.idx < lightbox.images.length - 1 && (
+                <button
+                  onClick={() => setLightbox((lb) => lb ? { ...lb, idx: lb.idx + 1 } : null)}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 w-12 h-12 bg-black/60 text-white flex items-center justify-center text-[28px] hover:bg-[#d33a10] transition-colors rounded-full"
+                  aria-label="Next image"
+                >
+                  ›
+                </button>
+              )}
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+/* ── Tile Component ── */
+function RandoTile({
+  item,
+  isExpanded,
+  onClick,
+}: {
+  item: RandoItem;
+  isExpanded: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <motion.div
+      layout
+      onClick={onClick}
+      className={`cursor-pointer group relative border-[3px] transition-colors duration-300 ${
+        isExpanded
+          ? "border-[#d33a10]"
+          : "border-[#aaa3a3] hover:border-[#d33a10]"
+      }`}
+    >
+      {/* Square image area with shoe catalog image */}
+      <div className="relative bg-white overflow-hidden" style={{ aspectRatio: "1/1" }}>
+        {item.tile_image ? (
           <Image
-            src="/images/modal-ocean-bg.jpg"
-            alt=""
+            src={item.tile_image}
+            alt={item.title}
             fill
-            className="object-cover"
+            className="object-contain p-6 group-hover:scale-105 transition-transform duration-500"
           />
+        ) : (
+          <div className="w-full h-full bg-white" />
+        )}
+
+        {/* Name overlaid at bottom of tile */}
+        <div className="absolute bottom-0 left-0 right-0 pb-4 px-4 text-center">
+          <h3 className="font-marvel font-bold text-[#4b4c4b] text-[22px] md:text-[32px] tracking-[0.15em] uppercase group-hover:text-[#d33a10] transition-colors">
+            {item.title}
+          </h3>
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
+/* ── Expanded Detail Panel ── */
+function ExpandedDetail({
+  item,
+  onClose,
+  onOpenLightbox,
+}: {
+  item: RandoItem;
+  onClose: () => void;
+  onOpenLightbox: (images: string[], idx: number) => void;
+}) {
+  const [currentImg, setCurrentImg] = useState(0);
+
+  return (
+    <div className="bg-white border border-[#d9d9d9] px-6 md:px-10 py-8 md:py-10 relative">
+      {/* Close button */}
+      <button
+        onClick={onClose}
+        className="absolute top-0 right-0 w-[44px] h-[44px] md:w-[56px] md:h-[56px] bg-[#040404] text-white flex items-center justify-center hover:bg-[#d33a10] transition-colors z-10"
+        aria-label="Close"
+      >
+        <span className="font-maven text-[18px]">X</span>
+      </button>
+
+      {/* Top row: circle | subtitle+name | tagline+website+phone */}
+      <div className="grid grid-cols-1 md:grid-cols-[auto_auto_1fr] gap-6 md:gap-8 mb-8 md:mb-10 items-center">
+        {/* Circle image */}
+        <div className="relative w-[180px] h-[180px] md:w-[220px] md:h-[220px] rounded-full overflow-hidden bg-[#d9d9d9] mx-auto md:mx-0 flex-shrink-0">
+          {item.circular_image ? (
+            <Image
+              src={item.circular_image}
+              alt={item.title}
+              fill
+              className="object-cover"
+            />
+          ) : null}
         </div>
 
-        {/* White card */}
-        <div className="relative z-10 bg-white/80 max-w-[1086px] mx-auto px-5 md:px-12 py-8 md:py-12">
-          {/* Close / X button — optional nav, top-right */}
-          <button
-            className="absolute top-0 right-0 w-[50px] h-[50px] md:w-[62px] md:h-[62px] bg-[#040404] text-white flex items-center justify-center hover:bg-[#d33a10] transition-colors z-10"
-            onClick={() => setCurrentItem(0)}
-            aria-label="Close"
+        {/* Subtitle + Name (next to circle) */}
+        <div className="text-center md:text-left">
+          <p className="font-baskerville text-[#434141] text-[12px] md:text-[15px] tracking-[0.02em] mb-1">
+            {item.subtitle}
+          </p>
+          <h2 className="font-kavoon text-[#413c3c] text-[24px] md:text-[32px] tracking-[-0.03em] leading-tight">
+            {item.title}
+          </h2>
+        </div>
+
+        {/* Tagline + website + phone (right column) */}
+        <div className="flex flex-col justify-center">
+          <h3 className="font-marvel text-[#413c3c] text-[24px] md:text-[36px] leading-[1.15] mb-3">
+            {item.tagline}
+          </h3>
+          {item.website_url && (
+            <p className="font-maven text-[#413c3c] text-[14px] md:text-[16px] mb-1">
+              <a
+                href={item.website_url.startsWith("http") ? item.website_url : `https://${item.website_url}`}
+                target="_blank"
+                rel="noreferrer"
+                className="hover:text-[#d33a10] transition-colors"
+              >
+                {item.website_url}
+              </a>
+            </p>
+          )}
+          {item.phone && (
+            <p className="font-maven text-[#413c3c] text-[14px] md:text-[16px]">
+              {item.phone}
+            </p>
+          )}
+        </div>
+      </div>
+
+      {/* Body text in two columns */}
+      <div
+        className="mb-8 md:mb-10"
+        style={{ columns: 2, columnGap: "2.5rem" }}
+      >
+        {item.description.split("\n\n").map((para, i) => (
+          <p
+            key={i}
+            className="font-maven text-[#413c3c] text-[12px] md:text-[13px] leading-[22px] md:leading-[24px] tracking-[-0.03em] mb-4 last:mb-0 break-inside-avoid"
           >
-            <span className="font-maven text-[20px]">X</span>
-          </button>
+            {para.split("\n").map((line, j) => (
+              <span key={j}>
+                {j > 0 && <br />}
+                {line}
+              </span>
+            ))}
+          </p>
+        ))}
+      </div>
 
-          {/* LIMITED EDITION + Name */}
-          <div className="mb-6">
-            <p className="font-maven font-medium text-[#434141] text-[11px] tracking-[0.05em] leading-[20px] uppercase">
-              {item.subtitle}
-            </p>
-            <h2 className="font-kavoon text-[#413c3c] text-[28px] md:text-[36px] tracking-[-0.02em] mt-1">
-              {item.title}
-            </h2>
-          </div>
+      {/* ── Single Photo with navigation arrows ── */}
+      {item.feature_images.length > 0 && (
+        <div
+          className="relative bg-[#e8e4dc] cursor-pointer w-full flex items-center justify-center"
+          style={{ minHeight: "280px", maxHeight: "520px" }}
+          onClick={() => onOpenLightbox(item.feature_images, currentImg)}
+        >
+          {/* Image shows completely – constrained to container without cropping */}
+          <Image
+            src={item.feature_images[currentImg]}
+            alt={`${item.title} photo ${currentImg + 1}`}
+            width={0}
+            height={0}
+            sizes="100vw"
+            style={{
+              width: "auto",
+              height: "auto",
+              maxWidth: "100%",
+              maxHeight: "520px",
+              display: "block",
+              objectFit: "contain",
+            }}
+          />
 
-          {/* Circular image + description */}
-          <div className="flex flex-col md:flex-row gap-6 md:gap-10 mb-8 md:mb-12">
-            {/* Circle */}
-            <div className="relative w-[140px] h-[140px] md:w-[168px] md:h-[168px] rounded-full overflow-hidden bg-[#d9d9d9] flex-shrink-0 mx-auto md:mx-0">
-              {item.circular_image ? (
-                <Image
-                  src={item.circular_image}
-                  alt={item.title}
-                  fill
-                  className="object-cover"
-                />
-              ) : null}
-            </div>
-            {/* Description */}
-            <p className="font-maven text-[#000000] text-[13px] leading-[20px] max-w-[529px]">
-              {item.description}
-            </p>
-          </div>
-
-          {/* Feature image slider */}
-          <div className="relative flex items-center justify-center mb-8">
-            {/* Prev arrow */}
+          {/* Prev arrow */}
+          {currentImg > 0 && (
             <button
-              onClick={prevSlide}
-              disabled={currentSlide === 0}
-              aria-label="Previous image"
-              className="absolute left-0 md:-left-4 z-10 w-10 h-10 md:w-12 md:h-12 flex items-center justify-center text-black text-[28px] md:text-[36px] disabled:opacity-20 disabled:cursor-not-allowed hover:text-[#d33a10] transition-colors"
+              onClick={(e) => { e.stopPropagation(); setCurrentImg((i) => i - 1); }}
+              className="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 bg-black/50 text-white flex items-center justify-center text-[24px] hover:bg-[#d33a10] transition-colors rounded-full"
+              aria-label="Previous photo"
             >
               ‹
             </button>
+          )}
 
-            {/* Image */}
-            <div className="relative w-full max-w-[706px] aspect-[706/533] bg-[#e8e4dc] overflow-hidden mx-8 md:mx-14">
-              {images.length > 0 ? (
-                <Image
-                  src={images[currentSlide]}
-                  alt={`${item.title} image ${currentSlide + 1}`}
-                  fill
-                  className="object-cover transition-opacity duration-300"
-                />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center">
-                  <span className="font-maven text-[#4b4c4b] text-[11px] tracking-[0.1em]">
-                    IMAGE COMING SOON
-                  </span>
-                </div>
-              )}
-              {/* Slide indicator */}
-              {images.length > 1 && (
-                <div className="absolute bottom-3 left-0 right-0 flex justify-center gap-2">
-                  {images.map((_, i) => (
-                    <button
-                      key={i}
-                      onClick={() => setCurrentSlide(i)}
-                      className={`w-2 h-2 rounded-full transition-colors ${
-                        i === currentSlide ? "bg-white" : "bg-white/50"
-                      }`}
-                      aria-label={`Go to image ${i + 1}`}
-                    />
-                  ))}
-                </div>
-              )}
-            </div>
-
-            {/* Next arrow */}
+          {/* Next arrow */}
+          {currentImg < item.feature_images.length - 1 && (
             <button
-              onClick={nextSlide}
-              disabled={currentSlide === images.length - 1 || images.length === 0}
-              aria-label="Next image"
-              className="absolute right-0 md:-right-4 z-10 w-10 h-10 md:w-12 md:h-12 flex items-center justify-center text-black text-[28px] md:text-[36px] disabled:opacity-20 disabled:cursor-not-allowed hover:text-[#d33a10] transition-colors"
+              onClick={(e) => { e.stopPropagation(); setCurrentImg((i) => i + 1); }}
+              className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 bg-black/50 text-white flex items-center justify-center text-[24px] hover:bg-[#d33a10] transition-colors rounded-full"
+              aria-label="Next photo"
             >
               ›
             </button>
-          </div>
-
-          {/* Bottom text bar */}
-          {item.bottom_text && (
-            <div className="mt-4">
-              <p className="font-maven font-semibold text-[#000000] text-[16px] md:text-[36px] leading-[28px]">
-                {item.bottom_text}
-              </p>
-            </div>
           )}
         </div>
+      )}
 
-        {/* Item navigation dots — cycle through rando items */}
-        {data.items.length > 1 && (
-          <div className="relative z-10 flex justify-center gap-3 mt-6">
-            {data.items.map((_, i) => (
-              <button
-                key={i}
-                onClick={() => setCurrentItem(i)}
-                className={`w-3 h-3 rounded-full border-2 transition-colors ${
-                  i === currentItem
-                    ? "bg-white border-white"
-                    : "bg-transparent border-white/70 hover:bg-white/50"
-                }`}
-                aria-label={`Go to item ${i + 1}`}
-              />
-            ))}
-          </div>
-        )}
-      </section>
-
-      {/* Footer credit */}
-      <div className="py-5 px-4 md:px-10 flex justify-end border-t border-[#d9d9d9]">
-        <p className="font-maven font-medium text-[#d33a10] text-[11px] md:text-[13px] tracking-[0.05em]">
-          PHOTO BY NANTUCKET&apos;S DAN LEMAITRE
-        </p>
-      </div>
     </div>
   );
 }

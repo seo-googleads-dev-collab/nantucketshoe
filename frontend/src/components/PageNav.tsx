@@ -5,10 +5,10 @@ import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
-
-const LINKS = ["HOME", "SHOES", "ABOUT", "CONTACT", "RANDO"];
+import { useSiteGlobal } from "@/lib/SiteGlobalContext";
 
 export default function PageNav() {
+  const global = useSiteGlobal();
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
@@ -27,10 +27,10 @@ export default function PageNav() {
         <span className="font-maven text-white text-[32px] leading-none">×</span>
       </button>
       <nav className="flex-1 flex flex-col items-center justify-center gap-8">
-        {LINKS.map(l => (
-          <Link key={l} href={l === "HOME" ? "/" : `/${l.toLowerCase()}`} onClick={() => setOpen(false)}
+        {global.nav_links.map(l => (
+          <Link key={l.label} href={l.href} onClick={() => setOpen(false)}
             className="font-maven font-semibold text-white text-[22px] tracking-[0.2em] hover:text-[#d33a10] transition-colors">
-            {l}
+            {l.label}
           </Link>
         ))}
       </nav>
@@ -41,19 +41,18 @@ export default function PageNav() {
     <nav className="sticky top-0 z-50 flex items-center justify-between px-4 md:px-10 py-3 md:py-4 bg-white border-b border-[#d9d9d9]">
       {/* Logo */}
       <Link href="/" className="relative" style={{ width: 80, height: 56 }}>
-        <Image src="/images/logo-card.png" alt="Nantucket Shoe" fill className="object-contain" priority />
+        <Image src={global.logo} alt="Nantucket Shoe" fill className="object-contain" priority />
       </Link>
 
       {/* Desktop nav */}
       <div className="hidden md:flex items-center gap-5 md:gap-8">
-        {LINKS.map(l => {
-          const path = l === "HOME" ? "/" : `/${l.toLowerCase()}`;
-          const active = pathname === path;
+        {global.nav_links.map(l => {
+          const active = pathname === l.href;
           return (
-            <Link key={l} href={path} className="relative">
+            <Link key={l.label} href={l.href} className="relative">
               <span className="font-maven font-semibold text-[13px] tracking-[0.15em] transition-colors duration-200"
                 style={{ color: active ? "#d33a10" : "#413c3c" }}>
-                {l}
+                {l.label}
               </span>
               {active && <div className="absolute -bottom-1 left-0 right-0 h-[1.5px] bg-[#d33a10]" />}
             </Link>

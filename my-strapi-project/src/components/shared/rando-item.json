@@ -15,8 +15,23 @@
     "description": {
       "type": "text"
     },
+    "tagline": {
+      "type": "string"
+    },
+    "website_url": {
+      "type": "string"
+    },
+    "phone": {
+      "type": "string"
+    },
     "bottom_text": {
       "type": "string"
+    },
+    "tile_image": {
+      "type": "media",
+      "multiple": false,
+      "required": false,
+      "allowedTypes": ["images"]
     },
     "circular_image": {
       "type": "media",

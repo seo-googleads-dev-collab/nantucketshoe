@@ -70,7 +70,7 @@ async function uploadFile(filePath) {
 
 // Check existing media in Strapi — skip re-upload if name matches.
 async function getExistingMedia() {
-  const res = await fetch(`${STRAPI_URL}/upload/files?pagination[pageSize]=500`, {
+  const res = await fetch(`${STRAPI_URL}/upload/files?page=1&pageSize=500`, {
     headers: { Authorization: `Bearer ${token}` },
   });
   if (!res.ok) return new Map();
@@ -167,6 +167,8 @@ async function seedAboutPage(m) {
     "Nantucket Shoe was founded by Leighton Collis on his adopted hometown. Nantucket. An advertising creative director and early tech work, Leighton and his teams created the first LasVegas.com, the last Saab sports car website and countless good and awful ad campaigns. A restless creator, he has developed historic preservation projects, including Hotel Ginger on Martha's Vineyard. It was for the Hotel Ginger team that he designed his first art shoe and a fascination was born. Advertising, architecture and shoes demand inspiration and collaboration. Nantucket Shoe exists through the art of its illustrators.";
   await putSingle(uid, {
     hero_image: m["about-hero"]?.id,
+    page_title: "Nantucket Shoe",
+    founder_image: m["hotel-shoe"]?.id,
     founder_story:
       "Nantucket Shoe was founded by Leighton Collis on his adopted hometown. Nantucket. An advertising creative director and early tech work, Leighton and his teams created the first LasVegas.com, the last Saab sports car website and countless good and awful ad campaigns. A restless creator, he has developed historic preservation projects, including Hotel Ginger on Martha's Vineyard (shoes on the left). It was for the Hotel Ginger team that he designed his first art shoe and a fascination was born (shoes on the right). Advertising, architecture and shoes demand inspiration and collaboration. Nantucket Shoe exists through the genius of its artists, Leighton's role is to coach, cajole and sometimes barks at his illustrators and otherwise keeps the stories behind the shoes true to Nantucket and the crazy people who make a sand bar 25 miles out to sea a home and a crossroads.",
     artists: [
@@ -175,7 +177,7 @@ async function seedAboutPage(m) {
         location: "Manilla, Phillippines",
         website: "www.website",
         story: artistStory,
-        image: m["surf-punk"]?.id ?? null,
+        image: m["artist image"]?.id ?? m["artist-image"]?.id ?? null,
       },
       {
         name: "Chris Harris",
@@ -192,26 +194,111 @@ async function seedAboutPage(m) {
 async function seedRandoPage(m) {
   const uid = "api::rando-page.rando-page";
   log("seeding rando-page…");
-  const desc =
-    "We want you to have more than all the comforts of home. Put the rush of the modern world in its place when you escape to Alpine Falls Ranch's finest accommodation. We want you to have more than all the comforts of home. Put the rush of the modern world in its place when you escape to Alpine Falls Ranch's finest accommodation.";
-  const item = (title) => ({
-    title,
-    subtitle: "LIMITED EDITION 100",
-    description: desc,
-    bottom_text: "AMENITIES + POLICIES + Open",
-    circular_image: null,
-    feature_images: null,
-  });
+  const noQuarterDesc =
+    "The Golden Age of Piracy ranged from 1650 to 1730 coinciding with the beginning of the Nantucket whaling. Whale oil was incredibly valuable was literally the worth its in gold. So Nantucket whaling ships were a fat prize for pirates.\n\nThe Pirate Round 1690s\nA brief period where pirates from the Caribbean and North American ports began making long-distance voyages to the Indian Ocean to rob wealthy merchant targets.\n\nPost-Spanish Succession Period c. 1715-1730\nThe most famous era, when thousands of unemployed sailors and privateers turned to piracy after the War of the Spanish Succession.\n\nFive notorious pirates sailed the waters around Nantucket in search of whaling ships laden with oil. Their flags make up the No Quarter shoe pattern: Black Sam Bellamy, Ned Low, Blackbeard, William Kidd and Thomas Tew";
+  const surfPunkDesc =
+    "Retro 70s Pacific wanderlust captured in every stitch. Illustrator Charlemagne Criste from Manila, The Philippines, created this wild-riding shoe.\n\nInspired by the surf culture of the 1970s, when surfers rode the waves from California to Hawaii and beyond. The shoe captures that free-spirited era with bold colors and psychedelic patterns.\n\nOnly 100 shoes are made, each numbered and signed by the artist.";
+  const washashoreDesc =
+    "A washashore is someone who came to Nantucket and never left. These are the artists, dreamers, and wanderers who made the island their home.\n\nThe island has always attracted restless souls looking for something different. From the whalers of the 18th century to the artists and writers of today, Nantucket draws people with adventure in their hearts.\n\nThis shoe celebrates the spirit of those who washed ashore and found home.";
   await putSingle(uid, {
     hero_image: m["rando-hero"]?.id,
-    intro_title: "Rando",
+    ocean_bg_image: m["modal-ocean-bg"]?.id,
+    intro_eyebrow: "NANTUCKET'S WANDERLUST",
+    intro_title: "Like Ink For Your Feet",
     intro_text:
-      "Random shoes, random stories, random rewards. Rando is our rotating collection of one-offs, experiments, and collaborations that don't fit anywhere else.",
+      "Ports attract people with adventure in their hearts: curious, restless, and keenly optimistic. For 400 years, rascals and raconteurs alike have walked Nantucket's docks and cobblestones. Nantucket's seaman were some of the first to venture to the Pacific, chasing whales and discovering wild and strange cultures down the Patagonia coast out to Fiji, the Philippines and Samurai-period Japan. Our art shoes tell Nantucket's stories, then and now. Are we selling Nantucket? Nah, who can afford it? Instead we champion Nantucket's wanderlust.",
     items: [
-      item("Item One"),
-      item("Item Two"),
-      item("Item Three"),
+      {
+        title: "No Quarter", subtitle: "LIMITED EDITION 100", description: noQuarterDesc,
+        tagline: "Hoisting the black flag means no quarter given: it's your booty or your life",
+        website_url: "www.website", phone: "+1 555 0100",
+        bottom_text: "AMENITIES + POLICIES + Open",
+        tile_image: m["no-quarter-catalog"]?.id ?? m["shoe-no-quarter"]?.id,
+        circular_image: m["no-quarter-shoe"]?.id, feature_images: [m["no-quarter-1"]?.id, m["no-quarter-2"]?.id, m["no-quarter-catalog"]?.id, m["shoe-no-quarter-detail"]?.id].filter(Boolean),
+      },
+      {
+        title: "Surf Punk", subtitle: "LIMITED EDITION 100", description: surfPunkDesc,
+        tagline: "Retro 70s Pacific wanderlust captured in every stitch",
+        website_url: "www.website", phone: "+1 555 0200",
+        bottom_text: "AMENITIES + POLICIES + Open",
+        tile_image: m["surf-punk-catalog"]?.id ?? m["shoe-surf-punk"]?.id,
+        circular_image: m["surf-punk"]?.id, feature_images: [m["surf-punk-catalog"]?.id, m["shoes-extra1"]?.id].filter(Boolean),
+      },
+      {
+        title: "Washashore", subtitle: "LIMITED EDITION 100", description: washashoreDesc,
+        tagline: "For those who came to Nantucket and never left",
+        website_url: "www.website", phone: "+1 555 0300",
+        bottom_text: "AMENITIES + POLICIES + Open",
+        tile_image: m["shoe-two-pennies"]?.id,
+        circular_image: m["shoe-two-pennies"]?.id, feature_images: [m["shoes-extra2"]?.id, m["shoes-extra1"]?.id].filter(Boolean),
+      },
     ],
+  });
+  await publishSingle(uid);
+}
+
+async function seedShoesPage(m) {
+  const uid = "api::shoes-page.shoes-page";
+  log("seeding shoes-page…");
+  await putSingle(uid, {
+    hero_image: m["shoes-hero"]?.id,
+    page_title: "Nantucket Shoes",
+    page_subtitle: "Limited Editions · Numbered & Signed",
+    photo_credit: "PHOTO BY NANTUCKET'S DAN LEMAITRE",
+    ocean_bg_image: m["modal-ocean-bg"]?.id,
+    detail_section: {
+      edition_label: "Limited Edition 100",
+      title: "No Quarter",
+      headline: "Hoisting the black flag means no quarter given: it's your booty or your life",
+      detail_image: m["shoe-no-quarter-detail"]?.id,
+      body_left_intro: "The Golden Age of Piracy ranged from 1650 to 1730 coinciding with the beginning of the Nantucket whaling. Whale oil was incredibly valuable was literally the worth its in gold. So Nantucket whaling ships were a fat prize for pirates.",
+      body_left_heading: "The Pirate Round 1690s",
+      body_left_text: "A brief period where pirates from the Caribbean and North American ports began making long-distance voyages to the Indian Ocean to rob wealthy merchant targets.",
+      body_right_heading: "Post-Spanish Succession Period c. 1715-1730",
+      body_right_text: "The most famous era, when thousands of unemployed sailors and privateers turned to piracy after the War of the Spanish Succession. This period saw the rise of legendary figures like Blackbeard, Bartholomew Roberts, and the female pirates Anne Bonny and Mary Read.",
+      body_right_extra: "Five notorious pirates sailed the waters around Nantucket in search of whaling ships laden with oil. Their flags make up the No Quarter shoe pattern: Black Sam Bellamy, Ned Low, Blackbeard, William Kidd and Thomas Tew",
+      artist_heading: "About the Artist",
+      artist_text_left: "We want you to have more than all the comforts of home. Put the rush of the modern world in its place when you escape to Alpine Falls Ranch's finest accommodation: We want you to have more than all the comforts of home. Put the rush of the modern world in its place when you escape to Alpine Falls Ranch's finest accommodation: We want you to have more than all the comforts of home. Put the rush of the modern world in its place when you escape to Alpine Falls Ranch's finest accommodation:",
+      artist_text_right: "We want you to have more than all the comforts of home. Put the rush of the modern world in its place when you escape to Alpine Falls Ranch's finest accommodation: We want you to have more than all the comforts of home. Put the rush of the modern world in its place when you escape to Alpine Falls Ranch's finest accommodation: We want you to have more than all the comforts of home. Put the rush of the modern world in its place when you escape to Alpine Falls Ranch's finest accommodation:",
+      artist_name: "Charlemagne Christe",
+      artist_image: m["artist image"]?.id,
+    },
+  });
+  await publishSingle(uid);
+}
+
+async function seedContactPage() {
+  const uid = "api::contact-page.contact-page";
+  log("seeding contact-page…");
+  await putSingle(uid, {
+    title: "Contact Us",
+    description: "For inquiries about our limited edition shoes, collaborations, or press, reach out below.",
+    email: "hello@nantucketshoeco.com",
+    photo_credit: "PHOTO BY NANTUCKET'S DAN LEMAITRE",
+  });
+  await publishSingle(uid);
+}
+
+async function seedSiteGlobal(m) {
+  const uid = "api::site-global.site-global";
+  log("seeding site-global…");
+  await putSingle(uid, {
+    photo_credit: "PHOTO BY NANTUCKET'S DAN LEMAITRE",
+    logo: m["logo-card"]?.id,
+    site_title: "N-Shoe | Premium Footwear",
+    site_description: "Experience the romance and cocoon of luxury shoes.",
+    nav_links: [
+      { label: "HOME", href: "/" },
+      { label: "SHOES", href: "/shoes" },
+      { label: "ABOUT", href: "/about" },
+      { label: "CONTACT", href: "/contact" },
+      { label: "RANDO", href: "/rando" },
+    ],
+    explore_collection_text: "EXPLORE COLLECTION →",
+    image_coming_soon_text: "IMAGE COMING SOON",
+    add_to_cart_text: "ADD TO CART",
+    about_artist_label: "ABOUT THE ARTIST",
+    default_edition_label: "Limited Edition 100",
   });
   await publishSingle(uid);
 }
@@ -219,6 +306,7 @@ async function seedRandoPage(m) {
 async function seedShoes(m) {
   log("seeding shoes…");
   const uid = "api::shoe.shoe";
+  const artistBio = "One of 100 numbered and signed limited editions. Each shoe tells Nantucket's story through the hands of a world-class artist.";
   const shoes = [
     {
       name: "No Quarter",
@@ -227,6 +315,12 @@ async function seedShoes(m) {
       category: "Limited Edition",
       description: "The Order of Two Pennies. Inked by Chris Harris of Bristol, England. Only 100 made, numbered and signed.",
       image: m["shoe-no-quarter"]?.id ?? m["no-quarter-shoe"]?.id,
+      tagline: "When flying the black flag meant your booty or your life",
+      edition_label: "Limited Edition 100",
+      extended_story_heading: "THE GOLDEN AGE OF PIRACY",
+      extended_story_text: "The Golden Age of Piracy ranged from 1650 to 1730 coinciding with the beginning of the Nantucket whaling. The Pirate Round — a brief period where pirates from the Caribbean and North American ports began making long-distance voyages to the Indian Ocean to rob wealthy merchant targets.",
+      artist_bio: artistBio,
+      detail_image: m["shoe-no-quarter-detail"]?.id,
       sizes: [7, 8, 9, 10, 11, 12],
       inStock: true,
     },
@@ -237,6 +331,10 @@ async function seedShoes(m) {
       category: "Limited Edition",
       description: "Retro 70s Surf Punk shoe illustrated by Charlemagne Criste, Manila, Philippines. Only 100 made, numbered and signed.",
       image: m["shoe-surf-punk"]?.id ?? m["surf-punk"]?.id,
+      tagline: "Retro 70s Pacific wanderlust",
+      edition_label: "Limited Edition 100",
+      artist_bio: artistBio,
+      detail_image: m["surf-punk-catalog"]?.id,
       sizes: [7, 8, 9, 10, 11, 12],
       inStock: true,
     },
@@ -247,6 +345,10 @@ async function seedShoes(m) {
       category: "Limited Edition",
       description: "The Order of Two Pennies shoe. Tattoo art meets canvas.",
       image: m["shoe-two-pennies"]?.id,
+      tagline: "Equal share for all who sail",
+      edition_label: "Limited Edition 100",
+      artist_bio: artistBio,
+      detail_image: m["shoe-two-pennies"]?.id,
       sizes: [7, 8, 9, 10, 11, 12],
       inStock: true,
     },
@@ -300,6 +402,9 @@ async function main() {
   await seedHomePage(media);
   await seedAboutPage(media);
   await seedRandoPage(media);
+  await seedShoesPage(media);
+  await seedContactPage();
+  await seedSiteGlobal(media);
   await seedShoes(media);
   log("DONE ✅");
 }

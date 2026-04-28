@@ -1,0 +1,32 @@
+{
+  "kind": "singleType",
+  "collectionName": "site_globals",
+  "info": {
+    "singularName": "site-global",
+    "pluralName": "site-globals",
+    "displayName": "Site Global",
+    "description": "Shared content across all pages"
+  },
+  "options": { "draftAndPublish": true },
+  "pluginOptions": {},
+  "attributes": {
+    "photo_credit": { "type": "string" },
+    "logo": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": ["images"]
+    },
+    "nav_links": {
+      "type": "component",
+      "repeatable": true,
+      "component": "shared.nav-link"
+    },
+    "site_title": { "type": "string" },
+    "site_description": { "type": "text" },
+    "explore_collection_text": { "type": "string" },
+    "image_coming_soon_text": { "type": "string" },
+    "add_to_cart_text": { "type": "string" },
+    "about_artist_label": { "type": "string" },
+    "default_edition_label": { "type": "string" }
+  }
+}

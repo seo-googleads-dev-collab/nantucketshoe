@@ -1,6 +1,24 @@
 const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL || 'http://localhost:1337';
 
-export async function fetchAPI(path: string, urlParamsObject = {}, options = {}) {
+/**
+ * Flatten nested objects into Strapi-compatible bracket notation.
+ * e.g. { populate: { items: { populate: { image: true } } } }
+ * becomes: populate[items][populate][image]=true
+ */
+function toQueryString(obj: Record<string, any>, prefix = ''): string {
+  const parts: string[] = [];
+  for (const [key, value] of Object.entries(obj)) {
+    const fullKey = prefix ? `${prefix}[${key}]` : key;
+    if (value !== null && typeof value === 'object' && !Array.isArray(value)) {
+      parts.push(toQueryString(value, fullKey));
+    } else {
+      parts.push(`${encodeURIComponent(fullKey)}=${encodeURIComponent(String(value))}`);
+    }
+  }
+  return parts.filter(Boolean).join('&');
+}
+
+export async function fetchAPI(path: string, urlParamsObject: Record<string, any> = {}, options: any = {}) {
   try {
     const mergedOptions = {
       next: { revalidate: 60 },
@@ -10,7 +28,7 @@ export async function fetchAPI(path: string, urlParamsObject = {}, options = {})
       ...options,
     };
 
-    const queryString = new URLSearchParams(urlParamsObject).toString();
+    const queryString = toQueryString(urlParamsObject);
     const requestUrl = `${STRAPI_URL}/api${path}${queryString ? `?${queryString}` : ''}`;
 
     const response = await fetch(requestUrl, mergedOptions);

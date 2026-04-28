@@ -1,0 +1,32 @@
+{
+  "kind": "singleType",
+  "collectionName": "shoes_pages",
+  "info": {
+    "singularName": "shoes-page",
+    "pluralName": "shoes-pages",
+    "displayName": "Shoes Page",
+    "description": "Content for the shoes listing page"
+  },
+  "options": { "draftAndPublish": true },
+  "pluginOptions": {},
+  "attributes": {
+    "hero_image": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": ["images"]
+    },
+    "page_title": { "type": "string" },
+    "page_subtitle": { "type": "string" },
+    "photo_credit": { "type": "string" },
+    "ocean_bg_image": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": ["images"]
+    },
+    "detail_section": {
+      "type": "component",
+      "repeatable": false,
+      "component": "shared.shoe-detail-section"
+    }
+  }
+}

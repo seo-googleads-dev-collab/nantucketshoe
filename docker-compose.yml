@@ -36,9 +36,6 @@ services:
     volumes:
       - ./my-strapi-project:/opt/app
       - /opt/app/node_modules
-      - /opt/app/.strapi
-      - /opt/app/dist
-      - /opt/app/build
     depends_on:
       postgres:
         condition: service_started
