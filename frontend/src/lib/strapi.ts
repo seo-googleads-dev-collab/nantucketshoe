@@ -58,5 +58,6 @@ export function getStrapiMedia(url: string | null) {
     return url;
   }
 
-  return `${STRAPI_URL}${url}`;
+  // Route through our Next.js API proxy so images work for remote viewers (ngrok)
+  return `/api/media${url}`;
 }

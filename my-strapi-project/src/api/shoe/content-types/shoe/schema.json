@@ -65,6 +65,14 @@
       "type": "media",
       "multiple": false,
       "allowedTypes": ["images"]
+    },
+    "artist_name": {
+      "type": "string"
+    },
+    "artist_image": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": ["images"]
     }
   }
 }

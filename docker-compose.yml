@@ -47,6 +47,7 @@ services:
     build:
       context: ./frontend
     restart: unless-stopped
+    command: sh -c "npm run build && npm run start"
     ports:
       - "3000:3000"
     environment:
@@ -55,7 +56,6 @@ services:
     volumes:
       - ./frontend:/app
       - /app/node_modules
-      - /app/.next
     depends_on:
       - strapi
     networks:

@@ -60,6 +60,6 @@ figma_*.json
 image_nodes.json
 fetch_figma.js
 seed.py
-Media/
+/Media/
 backend/
 backend_backup/
