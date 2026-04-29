@@ -4,6 +4,9 @@ const config = ({ env }: Core.Config.Shared.ConfigParams): Core.Config.Admin => 
   auth: {
     secret: env('ADMIN_JWT_SECRET'),
   },
+  rateLimit: {
+    enabled: false,
+  },
   apiToken: {
     salt: env('API_TOKEN_SALT'),
   },
