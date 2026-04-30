@@ -246,23 +246,6 @@ async function seedShoesPage(m) {
     page_subtitle: "Limited Editions · Numbered & Signed",
     photo_credit: "PHOTO BY NANTUCKET'S DAN LEMAITRE",
     ocean_bg_image: m["modal-ocean-bg"]?.id,
-    detail_section: {
-      edition_label: "Limited Edition 100",
-      title: "No Quarter",
-      headline: "Hoisting the black flag means no quarter given: it's your booty or your life",
-      detail_image: m["shoe-no-quarter-detail"]?.id,
-      body_left_intro: "The Golden Age of Piracy ranged from 1650 to 1730 coinciding with the beginning of the Nantucket whaling. Whale oil was incredibly valuable was literally the worth its in gold. So Nantucket whaling ships were a fat prize for pirates.",
-      body_left_heading: "The Pirate Round 1690s",
-      body_left_text: "A brief period where pirates from the Caribbean and North American ports began making long-distance voyages to the Indian Ocean to rob wealthy merchant targets.",
-      body_right_heading: "Post-Spanish Succession Period c. 1715-1730",
-      body_right_text: "The most famous era, when thousands of unemployed sailors and privateers turned to piracy after the War of the Spanish Succession. This period saw the rise of legendary figures like Blackbeard, Bartholomew Roberts, and the female pirates Anne Bonny and Mary Read.",
-      body_right_extra: "Five notorious pirates sailed the waters around Nantucket in search of whaling ships laden with oil. Their flags make up the No Quarter shoe pattern: Black Sam Bellamy, Ned Low, Blackbeard, William Kidd and Thomas Tew",
-      artist_heading: "About the Artist",
-      artist_text_left: "We want you to have more than all the comforts of home. Put the rush of the modern world in its place when you escape to Alpine Falls Ranch's finest accommodation: We want you to have more than all the comforts of home. Put the rush of the modern world in its place when you escape to Alpine Falls Ranch's finest accommodation: We want you to have more than all the comforts of home. Put the rush of the modern world in its place when you escape to Alpine Falls Ranch's finest accommodation:",
-      artist_text_right: "We want you to have more than all the comforts of home. Put the rush of the modern world in its place when you escape to Alpine Falls Ranch's finest accommodation: We want you to have more than all the comforts of home. Put the rush of the modern world in its place when you escape to Alpine Falls Ranch's finest accommodation: We want you to have more than all the comforts of home. Put the rush of the modern world in its place when you escape to Alpine Falls Ranch's finest accommodation:",
-      artist_name: "Charlemagne Christe",
-      artist_image: m["artist image"]?.id,
-    },
   });
   await publishSingle(uid);
 }
@@ -303,57 +286,119 @@ async function seedSiteGlobal(m) {
   await publishSingle(uid);
 }
 
-async function seedShoes(m) {
+async function seedArtists(m) {
+  log("seeding artists…");
+  const uid = "api::artist.artist";
+  const artistBioCharlemagne =
+    "Post-Spanish Succession Period c. 1715–1730\n\nThe most famous era, when thousands of unemployed sailors and privateers turned to piracy after the War of the Spanish Succession. This period saw the rise of legendary figures like Blackbeard, Bartholomew Roberts, and the female pirates Anne Bonny and Mary Read.\n\nFive notorious pirates sailed the waters around Nantucket in search of whaling ships laden with oil. Their flags make up the No Quarter shoe pattern: Black Sam Bellamy, Ned Low, Blackbeard, William Kidd and Thomas Tew";
+  const artistBioChris =
+    "Post-Spanish Succession Period c. 1715–1730\n\nThe most famous era, when thousands of unemployed sailors and privateers turned to piracy after the War of the Spanish Succession. This period saw the rise of legendary figures like Blackbeard, Bartholomew Roberts, and the female pirates Anne Bonny and Mary Read.\n\nFive notorious pirates sailed the waters around Nantucket in search of whaling ships laden with oil. Their flags make up the No Quarter shoe pattern: Black Sam Bellamy, Ned Low, Blackbeard, William Kidd and Thomas Tew";
+
+  const artists = [
+    {
+      name: "Chris Harris",
+      bio: artistBioChris,
+      image: m["no-quarter-shoe"]?.id ?? null,
+    },
+    {
+      name: "Charlemagne Christe",
+      bio: artistBioCharlemagne,
+      image: m["artist image"]?.id ?? m["artist-image"]?.id ?? null,
+    },
+  ];
+
+  // Check existing
+  const listRes = await fetch(
+    `${STRAPI_URL}/content-manager/collection-types/${uid}?pagination[pageSize]=100`,
+    { headers: { Authorization: `Bearer ${token}` } }
+  );
+  const list = listRes.ok ? await listRes.json() : { results: [] };
+  const existingMap = new Map();
+  for (const a of list.results || []) {
+    existingMap.set(a.name, a.documentId || a.id);
+  }
+
+  const artistIdMap = {};
+
+  for (const a of artists) {
+    if (existingMap.has(a.name)) {
+      log(`  skip existing artist: ${a.name}`);
+      artistIdMap[a.name] = existingMap.get(a.name);
+      continue;
+    }
+    const res = await fetch(`${STRAPI_URL}/content-manager/collection-types/${uid}`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(a),
+    });
+    if (!res.ok) {
+      err(`create artist ${a.name}:`, res.status, await res.text());
+      continue;
+    }
+    const doc = await res.json();
+    const id = doc.documentId || doc.id;
+    artistIdMap[a.name] = id;
+    // publish
+    const pubRes = await fetch(
+      `${STRAPI_URL}/content-manager/collection-types/${uid}/${id}/actions/publish`,
+      {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+        body: "{}",
+      }
+    );
+    if (pubRes.ok) log(`  created + published: ${a.name}`);
+    else err(`publish ${a.name}:`, pubRes.status, await pubRes.text());
+  }
+
+  return artistIdMap;
+}
+
+async function seedShoes(m, artistIdMap) {
   log("seeding shoes…");
   const uid = "api::shoe.shoe";
-  const artistBio = "One of 100 numbered and signed limited editions. Each shoe tells Nantucket's story through the hands of a world-class artist.";
   const shoes = [
     {
-      name: "No Quarter",
+      name: "NO QUARTER",
       price: 195,
       color: "Black",
       category: "Limited Edition",
-      description: "The Order of Two Pennies. Inked by Chris Harris of Bristol, England. Only 100 made, numbered and signed.",
+      description: "The Golden Age of Piracy ranged from 1650 to 1730 coinciding with the beginning of the Nantucket whaling. Whale oil was incredibly valuable was literally the worth its in gold. So Nantucket whaling ships were a fat prize for pirates.\n\nThe Pirate Round 1690s:\nA brief period where pirates from the Caribbean and North American ports began making long-distance voyages to the Indian Ocean to rob wealthy merchant targets.",
       image: m["shoe-no-quarter"]?.id ?? m["no-quarter-shoe"]?.id,
-      tagline: "When flying the black flag meant your booty or your life",
+      tagline: "Hoisting the black flag means no quarter given: it's your booty or your life",
       edition_label: "Limited Edition 100",
-      extended_story_heading: "THE GOLDEN AGE OF PIRACY",
-      extended_story_text: "The Golden Age of Piracy ranged from 1650 to 1730 coinciding with the beginning of the Nantucket whaling. The Pirate Round — a brief period where pirates from the Caribbean and North American ports began making long-distance voyages to the Indian Ocean to rob wealthy merchant targets.",
-      artist_bio: artistBio,
-      artist_name: "Chris Harris",
-      artist_image: m["no-quarter-shoe"]?.id ?? null,
+      artist: artistIdMap["Chris Harris"],
       detail_image: m["shoe-no-quarter-detail"]?.id,
       sizes: [7, 8, 9, 10, 11, 12],
       inStock: true,
     },
     {
-      name: "Surf Punk",
+      name: "SURF PUNK",
       price: 195,
       color: "Multi",
       category: "Limited Edition",
-      description: "Retro 70s Surf Punk shoe illustrated by Charlemagne Criste, Manila, Philippines. Only 100 made, numbered and signed.",
+      description: "Retro 70s Pacific wanderlust captured in every stitch. Illustrator Charlemagne Criste from Manila, The Philippines, created this wild-riding shoe.\n\nInspired by the surf culture of the 1970s, when surfers rode the waves from California to Hawaii and beyond. The shoe captures that free-spirited era with bold colors and psychedelic patterns.\n\nOnly 100 shoes are made, each numbered and signed by the artist.",
       image: m["shoe-surf-punk"]?.id ?? m["surf-punk"]?.id,
       tagline: "Retro 70s Pacific wanderlust",
       edition_label: "Limited Edition 100",
-      artist_bio: artistBio,
-      artist_name: "Charlemagne Christe",
-      artist_image: m["artist image"]?.id ?? m["artist-image"]?.id ?? null,
+      artist: artistIdMap["Charlemagne Christe"],
       detail_image: m["surf-punk-catalog"]?.id,
       sizes: [7, 8, 9, 10, 11, 12],
       inStock: true,
     },
     {
-      name: "Two Pennies",
+      name: "THE ORDER OF TWO PENNIES",
       price: 195,
       color: "Cream",
       category: "Limited Edition",
-      description: "The Order of Two Pennies shoe. Tattoo art meets canvas.",
+      description: "Tattoo artist Chris Harris, of Bristol, England inked this intricate limited edition. The Order of Two Pennies represents the pirates' code — equal share for all who sail.\n\nOnly 100 shoes are made, each numbered and signed by the artist.",
       image: m["shoe-two-pennies"]?.id,
       tagline: "Equal share for all who sail",
       edition_label: "Limited Edition 100",
-      artist_bio: artistBio,
-      artist_name: "Chris Harris",
-      artist_image: m["no-quarter-shoe"]?.id ?? null,
+      artist: artistIdMap["Chris Harris"],
       detail_image: m["shoe-two-pennies"]?.id,
       sizes: [7, 8, 9, 10, 11, 12],
       inStock: true,
@@ -366,11 +411,34 @@ async function seedShoes(m) {
     { headers: { Authorization: `Bearer ${token}` } }
   );
   const list = listRes.ok ? await listRes.json() : { results: [] };
-  const existingNames = new Set((list.results || []).map((s) => s.name));
+  const existingMap = new Map();
+  for (const s of list.results || []) {
+    existingMap.set(s.name, s);
+  }
 
   for (const s of shoes) {
-    if (existingNames.has(s.name)) {
-      log(`  skip existing shoe: ${s.name}`);
+    if (existingMap.has(s.name)) {
+      // Update existing shoe with artist relation
+      const existing = existingMap.get(s.name);
+      const existId = existing.documentId || existing.id;
+      log(`  updating artist relation for existing shoe: ${s.name}`);
+      await fetch(`${STRAPI_URL}/content-manager/collection-types/${uid}/${existId}`, {
+        method: "PUT",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ artist: s.artist }),
+      });
+      // re-publish
+      await fetch(
+        `${STRAPI_URL}/content-manager/collection-types/${uid}/${existId}/actions/publish`,
+        {
+          method: "POST",
+          headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+          body: "{}",
+        }
+      );
       continue;
     }
     const res = await fetch(`${STRAPI_URL}/content-manager/collection-types/${uid}`, {
@@ -411,7 +479,8 @@ async function main() {
   await seedShoesPage(media);
   await seedContactPage();
   await seedSiteGlobal(media);
-  await seedShoes(media);
+  const artistIdMap = await seedArtists(media);
+  await seedShoes(media, artistIdMap);
   log("DONE ✅");
 }
 

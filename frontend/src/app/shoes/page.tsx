@@ -16,12 +16,12 @@ type Shoe = {
   image?: string | null;
   tagline?: string;
   edition_label?: string;
-  extended_story_heading?: string;
-  extended_story_text?: string;
-  artist_bio?: string;
-  artist_name?: string;
-  artist_image?: string | null;
   detail_image?: string | null;
+  artist?: {
+    name: string;
+    image?: string | null;
+    bio?: string;
+  };
 };
 
 type ShoesPageData = {
@@ -84,7 +84,17 @@ export default function ShoesPage() {
 
   // Fetch shoe collection
   useEffect(() => {
-    fetchAPI("/shoes", { populate: "*" }).then((result) => {
+    fetchAPI("/shoes", {
+      populate: {
+        image: true,
+        detail_image: true,
+        artist: {
+          populate: {
+            image: true,
+          },
+        },
+      },
+    }).then((result) => {
       if (result?.data?.length > 0) {
         setShoes(
           result.data.map((item: any) => ({
@@ -96,12 +106,14 @@ export default function ShoesPage() {
             image: getStrapiMedia(item.image?.url ?? null) ?? IMAGE_MAP[item.name] ?? null,
             tagline: item.tagline || "",
             edition_label: item.edition_label || "",
-            extended_story_heading: item.extended_story_heading || "",
-            extended_story_text: item.extended_story_text || "",
-            artist_bio: item.artist_bio || "",
-            artist_name: item.artist_name || "",
-            artist_image: getStrapiMedia(item.artist_image?.url ?? null),
             detail_image: getStrapiMedia(item.detail_image?.url ?? null),
+            artist: item.artist
+              ? {
+                  name: item.artist.name || "",
+                  image: getStrapiMedia(item.artist.image?.url ?? null),
+                  bio: item.artist.bio || "",
+                }
+              : undefined,
           }))
         );
       }
@@ -329,26 +341,16 @@ function ShoeExpandedDetail({
               {shoe.tagline}
             </h3>
 
-            {/* Body text */}
-            <div className="space-y-6">
-              {shoe.description && (
-                <p className="font-maven text-[#413c3c] text-[13px] leading-[20px] tracking-[-0.05em]">
-                  {shoe.description}
-                </p>
-              )}
-              {shoe.extended_story_heading && (
-                <div>
-                  <h4 className="font-maven font-bold text-[#413c3c] text-[13px] mb-2">
-                    {shoe.extended_story_heading}
-                  </h4>
-                  {shoe.extended_story_text && (
-                    <p className="font-maven text-[#413c3c] text-[13px] leading-[20px] tracking-[-0.05em]">
-                      {shoe.extended_story_text}
-                    </p>
-                  )}
-                </div>
-              )}
-            </div>
+            {/* Body text — render paragraphs from single field */}
+            {shoe.description && (
+              <div className="space-y-4">
+                {shoe.description.split(/\n\n+/).map((para, i) => (
+                  <p key={i} className="font-maven text-[#413c3c] text-[13px] leading-[20px] tracking-[-0.05em]">
+                    {para}
+                  </p>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* ═══ RIGHT COLUMN: shoe detail image → artist section ═══ */}
@@ -385,7 +387,7 @@ function ShoeExpandedDetail({
             </div>
 
             {/* About the Artist */}
-            {(shoe.artist_name || shoe.artist_bio) && (
+            {shoe.artist && (
               <>
                 <div className="grid grid-cols-[1fr_auto] gap-4 items-center mb-4">
                   {/* Left: label + name stacked */}
@@ -393,29 +395,33 @@ function ShoeExpandedDetail({
                     <p className="font-maven font-semibold text-[#413c3c] text-[13px] tracking-[0.15em] uppercase mb-3">
                       About the Artist
                     </p>
-                    {shoe.artist_name && (
+                    {shoe.artist.name && (
                       <h3 className="font-marvel text-[#413c3c] text-[28px] md:text-[36px] leading-[1.15]">
-                        {shoe.artist_name}
+                        {shoe.artist.name}
                       </h3>
                     )}
                   </div>
                   {/* Right: circular photo */}
-                  {shoe.artist_image ? (
+                  {shoe.artist.image ? (
                     <div className="w-[140px] h-[140px] md:w-[168px] md:h-[168px] rounded-full overflow-hidden relative flex-shrink-0">
                       <Image
-                        src={shoe.artist_image}
-                        alt={shoe.artist_name || "Artist"}
+                        src={shoe.artist.image}
+                        alt={shoe.artist.name || "Artist"}
                         fill
                         className="object-cover"
                       />
                     </div>
                   ) : <div />}
                 </div>
-                {/* Bio text below */}
-                {shoe.artist_bio && (
-                  <p className="font-maven text-[#413c3c] text-[13px] leading-[20px] tracking-[-0.05em]">
-                    {shoe.artist_bio}
-                  </p>
+                {/* Bio text below — render paragraphs from single field */}
+                {shoe.artist.bio && (
+                  <div className="space-y-4">
+                    {shoe.artist.bio.split(/\n\n+/).map((para, i) => (
+                      <p key={i} className="font-maven text-[#413c3c] text-[13px] leading-[20px] tracking-[-0.05em]">
+                        {para}
+                      </p>
+                    ))}
+                  </div>
                 )}
               </>
             )}

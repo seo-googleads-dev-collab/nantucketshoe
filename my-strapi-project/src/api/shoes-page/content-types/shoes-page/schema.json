@@ -22,11 +22,6 @@
       "type": "media",
       "multiple": false,
       "allowedTypes": ["images"]
-    },
-    "detail_section": {
-      "type": "component",
-      "repeatable": false,
-      "component": "shared.shoe-detail-section"
     }
   }
 }

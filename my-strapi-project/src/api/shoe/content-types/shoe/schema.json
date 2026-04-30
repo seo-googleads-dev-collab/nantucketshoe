@@ -24,7 +24,7 @@
       "type": "string"
     },
     "description": {
-      "type": "richtext"
+      "type": "text"
     },
     "image": {
       "type": "media",
@@ -52,27 +52,16 @@
     "edition_label": {
       "type": "string"
     },
-    "extended_story_heading": {
-      "type": "string"
-    },
-    "extended_story_text": {
-      "type": "text"
-    },
-    "artist_bio": {
-      "type": "text"
-    },
     "detail_image": {
       "type": "media",
       "multiple": false,
       "allowedTypes": ["images"]
     },
-    "artist_name": {
-      "type": "string"
-    },
-    "artist_image": {
-      "type": "media",
-      "multiple": false,
-      "allowedTypes": ["images"]
+    "artist": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::artist.artist",
+      "inversedBy": "shoes"
     }
   }
 }
